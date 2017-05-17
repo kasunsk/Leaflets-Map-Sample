@@ -1,0 +1,63 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Getting Started: Serving Web Content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
+          integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ=="
+          crossorigin=""/>
+
+    <script type="text/javascript" src="/static/js/map.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"
+            integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg=="
+            crossorigin=""></script>
+
+</head>
+<body>
+<p>Get your greeting Map</p>
+<br>
+<div style="width: 600px; height: 400px; position: relative;" id="mapid"></div>
+
+<script>
+    var mymap = L.map('mapid').setView([7.872453, 80.771496], 10);
+
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    maxZoom: 18,
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+    '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+    'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    id: 'mapbox.streets'
+    }).addTo(mymap);
+
+    L.marker([7.884677, 80.534522]).addTo(mymap);
+
+    L.marker([7.884677, 80.534522]).addTo(mymap).bindPopup("<b>Hello world!</b><br />I am a popup.").openPopup();
+    marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
+
+    L.circle([7.9, 80.01], {
+        color: 'red',
+        fillColor: '#f03',
+        fillOpacity: 0.5,
+        radius: 1000
+    }).addTo(mymap);
+
+    L.polygon([
+        [7.80, 80.6],
+        [7.89, 80.5],
+        [7.85, 80.4]
+    ]).addTo(mymap);
+
+    function onMapClick(e) {
+        alert("You clicked the map at " + e.latlng);
+    }
+
+    mymap.on('click', onMapClick);
+
+</script>
+
+</body>
+</html>
+
+
