@@ -113,6 +113,22 @@ function init() {
 
 }
 
+function actions() {
+
+    leaf_map.on('draw:created', function (e) {
+            alert('It wordks')
+    });
+
+    leaf_map.on('draw:deleted', function (e) {
+        alert('It Deleted')
+    });
+
+    leaf_map.on('draw:edited', function (e) {
+        alert('It Edited')
+    });
+}
+
+
 function startPolling() {
 }
 
