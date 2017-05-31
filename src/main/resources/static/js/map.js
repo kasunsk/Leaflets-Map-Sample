@@ -5,6 +5,13 @@
 
 var leaf_map;
 
+var latitude;
+var longitude;
+
+var drawnItems;
+
+var drawControl;
+
 function init() {
 
     leaf_map = L.map('mapid').setView([7.872453, 80.771496], 7);
@@ -73,9 +80,9 @@ function init() {
         }
     });
 
-    var drawnItems = new L.FeatureGroup();
+    drawnItems = new L.FeatureGroup();
     leaf_map.addLayer(drawnItems);
-    var drawControl = new L.Control.Draw({
+    drawControl = new L.Control.Draw({
         position: 'topright',
         draw: {
             polyline: {
@@ -94,7 +101,7 @@ function init() {
                     color: '#bada55'
                 }
             },
-            circle: false, // Turns off this drawing tool
+            circle: true, // Turns off this drawing tool
             rectangle: {
                 shapeOptions: {
                     clickable: false
@@ -106,7 +113,7 @@ function init() {
         },
         edit: {
             featureGroup: drawnItems, //REQUIRED!!
-            remove: false
+            remove: true
         }
     });
     leaf_map.addControl(drawControl);
@@ -115,16 +122,91 @@ function init() {
 
 function actions() {
 
+
+    leaf_map.on('draw:drawstart', function (e) {
+
+        drawnItems.eachLayer(function (layer) {
+            drawnItems.removeLayer(layer);
+        });
+
+    });
+
     leaf_map.on('draw:created', function (e) {
-            alert('It wordks')
+
+        var type = e.layerType,
+            layer = e.layer;
+
+
+        leaf_map.addLayer(layer);
+
+        if (type === 'marker') {
+
+            $('#shape').text('Marker');
+
+            $('#var1').text('Lat & Lng : ');
+            $('#val1').text(layer.getLatLng());
+
+            $('#var2').text('');
+            $('#val2').text('');
+        }
+
+        if (type === 'rectangle') {
+
+            $('#shape').text('Rectangle');
+
+            $('#var1').text('NE : ');
+            $('#val1').text(layer.getBounds().getNorthEast());
+
+            $('#var2').text('SW : ');
+            $('#val2').text(layer.getBounds().getSouthWest());
+        }
+
+        if (type === 'circle') {
+
+            $('#shape').text('Circle');
+
+            $('#var1').text('Radius : ');
+            $('#val1').text(layer.getRadius());
+
+            $('#var2').text('Center : ');
+            var center =  layer.getLatLng();
+            $('#val2').text(center);
+
+        }
+        drawnItems.addLayer(layer);
     });
 
-    leaf_map.on('draw:deleted', function (e) {
-        alert('It Deleted')
+    leaf_map.on('draw:editmove', function (e) {
+
+        var type = e.layerType,
+            layer = e.layer;
+
+        leaf_map.addLayer(layer);
+
+        if (type === 'marker') {
+
+            latitude = layer.getLatLng().lat;
+            $('#latitude').text(latitude);
+
+            longitude = layer.getLatLng().lng;
+            $('#longitude').text(longitude);
+        }
     });
 
-    leaf_map.on('draw:edited', function (e) {
-        alert('It Edited')
+    leaf_map.on('draw:editresize', function (e) {
+
+        var type = e.layerType,
+            layer = e.layer;
+
+        $('#shape').text('Circle');
+
+        $('#var1').text('Radius : ');
+        $('#val1').text(layer.getRadius());
+
+        $('#var2').text('Center : ');
+        var center =  layer.getLatLng();
+        $('#val2').text(center);
+
     });
 }
 
