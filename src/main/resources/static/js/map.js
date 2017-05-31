@@ -122,6 +122,7 @@ function init() {
 
 function actions() {
 
+    var type;
 
     leaf_map.on('draw:drawstart', function (e) {
 
@@ -133,9 +134,8 @@ function actions() {
 
     leaf_map.on('draw:created', function (e) {
 
-        var type = e.layerType,
-            layer = e.layer;
-
+         type = e.layerType;
+         var layer = e.layer;
 
         leaf_map.addLayer(layer);
 
@@ -178,34 +178,70 @@ function actions() {
 
     leaf_map.on('draw:editmove', function (e) {
 
-        var type = e.layerType,
-            layer = e.layer;
+        var layer = e.layer;
 
         leaf_map.addLayer(layer);
 
         if (type === 'marker') {
 
-            latitude = layer.getLatLng().lat;
-            $('#latitude').text(latitude);
+            $('#shape').text('Marker');
 
-            longitude = layer.getLatLng().lng;
-            $('#longitude').text(longitude);
+            $('#var1').text('Lat & Lng : ');
+            $('#val1').text(layer.getLatLng());
+
+            $('#var2').text('');
+            $('#val2').text('');
+        }
+
+        if (type === 'circle') {
+            $('#shape').text('Circle');
+
+            $('#var1').text('Radius : ');
+            $('#val1').text(layer.getRadius());
+
+            $('#var2').text('Center : ');
+            var center =  layer.getLatLng();
+            $('#val2').text(center);
+        }
+
+        if (type === 'rectangle')
+        {
+            $('#shape').text('Rectangle');
+
+            $('#var1').text('NE : ');
+            $('#val1').text(layer.getBounds().getNorthEast());
+
+            $('#var2').text('SW : ');
+            $('#val2').text(layer.getBounds().getSouthWest());
         }
     });
 
     leaf_map.on('draw:editresize', function (e) {
 
-        var type = e.layerType,
-            layer = e.layer;
+        var layer = e.layer;
 
-        $('#shape').text('Circle');
+        if (type === 'circle')
+        {
+            $('#shape').text('Circle');
 
-        $('#var1').text('Radius : ');
-        $('#val1').text(layer.getRadius());
+            $('#var1').text('Radius : ');
+            $('#val1').text(layer.getRadius());
 
-        $('#var2').text('Center : ');
-        var center =  layer.getLatLng();
-        $('#val2').text(center);
+            $('#var2').text('Center : ');
+            var center = layer.getLatLng();
+            $('#val2').text(center);
+        }
+
+        if (type === 'rectangle')
+        {
+            $('#shape').text('Rectangle');
+
+            $('#var1').text('NE : ');
+            $('#val1').text(layer.getBounds().getNorthEast());
+
+            $('#var2').text('SW : ');
+            $('#val2').text(layer.getBounds().getSouthWest());
+        }
 
     });
 }
