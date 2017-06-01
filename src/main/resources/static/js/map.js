@@ -132,6 +132,21 @@ function actions() {
 
     });
 
+    leaf_map.on('draw:drawvertex', function (e) {
+
+        $("#coordinateTable").empty();
+        var layers = e.layers;
+
+        var i = 0;
+
+        layers.eachLayer(function (layer) {
+            i++;
+            var latlng = layer.getLatLng();
+            $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + i + ' ' + '</td><td>' + latlng + '</td></tr>');
+        });
+
+    });
+
     leaf_map.on('draw:created', function (e) {
 
          type = e.layerType;
@@ -141,38 +156,53 @@ function actions() {
 
         if (type === 'marker') {
 
+            $("#coordinateTable").empty();
             $('#shape').text('Marker');
 
-            $('#var1').text('Lat & Lng : ');
-            $('#val1').text(layer.getLatLng());
-
-            $('#var2').text('');
-            $('#val2').text('');
+            $('#coordinateTable').append( '<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>' );
         }
 
         if (type === 'rectangle') {
 
+            $("#coordinateTable").empty();
             $('#shape').text('Rectangle');
 
-            $('#var1').text('NE : ');
-            $('#val1').text(layer.getBounds().getNorthEast());
-
-            $('#var2').text('SW : ');
-            $('#val2').text(layer.getBounds().getSouthWest());
+            $('#coordinateTable').append( '<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>' );
+            $('#coordinateTable').append( '<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>' );
         }
 
         if (type === 'circle') {
 
+            $("#coordinateTable").empty();
             $('#shape').text('Circle');
-
-            $('#var1').text('Radius : ');
-            $('#val1').text(layer.getRadius());
-
-            $('#var2').text('Center : ');
             var center =  layer.getLatLng();
-            $('#val2').text(center);
+
+            $('#coordinateTable').append( '<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>' );
+            $('#coordinateTable').append( '<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>' );
 
         }
+
+        if (type === 'polyline') {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polyline');
+
+            var latlngs = layer.getLatLngs();
+            for(var i = 0; i < latlngs.length; i++){
+                $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            }
+        }
+
+        if (type === 'polygon') {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polygon');
+            var latlngs = layer.getLatLngs();
+            for(var i = 0; i < latlngs.length; i++){
+                $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            }
+        }
+
         drawnItems.addLayer(layer);
     });
 
@@ -184,36 +214,42 @@ function actions() {
 
         if (type === 'marker') {
 
+            $("#coordinateTable").empty();
             $('#shape').text('Marker');
 
-            $('#var1').text('Lat & Lng : ');
-            $('#val1').text(layer.getLatLng());
-
-            $('#var2').text('');
-            $('#val2').text('');
+            $('#coordinateTable').append( '<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>' );
         }
 
         if (type === 'circle') {
+
+            $("#coordinateTable").empty();
             $('#shape').text('Circle');
-
-            $('#var1').text('Radius : ');
-            $('#val1').text(layer.getRadius());
-
-            $('#var2').text('Center : ');
             var center =  layer.getLatLng();
-            $('#val2').text(center);
+
+            $('#coordinateTable').append( '<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>' );
+            $('#coordinateTable').append( '<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>' );
         }
 
         if (type === 'rectangle')
         {
+            $("#coordinateTable").empty();
             $('#shape').text('Rectangle');
 
-            $('#var1').text('NE : ');
-            $('#val1').text(layer.getBounds().getNorthEast());
-
-            $('#var2').text('SW : ');
-            $('#val2').text(layer.getBounds().getSouthWest());
+            $('#coordinateTable').append( '<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>' );
+            $('#coordinateTable').append( '<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>' );
         }
+
+        if (type === 'polygon') {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polygon');
+            var latlngs = layer.getLatLngs();
+            for(var i = 0; i < latlngs.length; i++){
+                $('#coordinateTable').append( '<tr><td>' + 'Coordinate '+  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            }
+        }
+
+        drawnItems.addLayer(layer);
     });
 
     leaf_map.on('draw:editresize', function (e) {
@@ -222,27 +258,89 @@ function actions() {
 
         if (type === 'circle')
         {
+            $("#coordinateTable").empty();
             $('#shape').text('Circle');
+            var center =  layer.getLatLng();
 
-            $('#var1').text('Radius : ');
-            $('#val1').text(layer.getRadius());
-
-            $('#var2').text('Center : ');
-            var center = layer.getLatLng();
-            $('#val2').text(center);
+            $('#coordinateTable').append( '<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>' );
+            $('#coordinateTable').append( '<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>' );
         }
 
         if (type === 'rectangle')
         {
+            $("#coordinateTable").empty();
             $('#shape').text('Rectangle');
 
-            $('#var1').text('NE : ');
-            $('#val1').text(layer.getBounds().getNorthEast());
-
-            $('#var2').text('SW : ');
-            $('#val2').text(layer.getBounds().getSouthWest());
+            $('#coordinateTable').append( '<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>' );
+            $('#coordinateTable').append( '<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>' );
         }
 
+        if (type === 'polyline') {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polyline');
+
+            var latlngs = layer.getLatLngs();
+            for(var i = 0; i < latlngs.length; i++){
+                $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            }
+        }
+
+        if (type === 'polygon') {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polygon');
+            var latlngs = layer.getLatLngs();
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
+            }
+        }
+
+        drawnItems.addLayer(layer);
+    });
+
+    leaf_map.on('draw:editvertex', function (e) {
+
+        var layers = e.layers;
+
+        if (type === 'polyline') {
+
+            $("#coordinateTable").empty();
+            var layers = e.layers;
+
+            var i = 0;
+
+            layers.eachLayer(function (layer) {
+                i++;
+                var latlng = layer.getLatLng();
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + i + ' ' + '</td><td>' + latlng + '</td></tr>');
+            });
+        }
+
+        if (type === 'polygon') {
+
+            $('#shape').text('Polygon');
+            $("#coordinateTable").empty();
+            var layers = e.layers;
+
+            var i = 0;
+
+            layers.eachLayer(function (layer) {
+                i++;
+                var latlng = layer.getLatLng();
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + i + ' ' + '</td><td>' + latlng + '</td></tr>');
+            });
+        }
+
+    });
+
+    leaf_map.on('draw:deleted', function (e) {
+
+        $("#coordinateTable").empty();
+
+        drawnItems.eachLayer(function (layer) {
+            drawnItems.removeLayer(layer);
+        });
     });
 }
 
