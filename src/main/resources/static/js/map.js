@@ -12,6 +12,8 @@ var drawnItems;
 
 var drawControl;
 
+var navigationScript = true;
+
 function init() {
 
     leaf_map = L.map('mapid').setView([7.872453, 80.771496], 7);
@@ -30,30 +32,45 @@ function init() {
         subdomains: '0123'
     }).addTo(leaf_map);
 
+    var zoomResetDiv = document.createElement('div');
+    //var zoomReset = new ZoomReset(zoomResetDiv, map);
 
-    var refreshIcon = L.control({
+    zoomResetDiv.index = 1;
+
+    var zoomResetIcon = L.control({
         position: 'topleft'
     });
-    refreshIcon.onAdd = function (map) {
+
+    zoomResetIcon.onAdd = function () {
+        zoomResetDiv.style.display = 'inline-block';
+        zoomResetDiv.style.float = 'center';
         this._div = L.DomUtil.create('div', 'myControl');
-        var img_log = "<div class='refreshIcon' title='Refresh locations' onclick='refreshMarkers()'><img src='imgs/refresh.png'></img></div>";
+        var img_log = "<div class='homeIcon' title='toggle ' onclick='reset();'><img src='imgs/home.png'></img></div>";
         this._div.innerHTML = img_log;
         return this._div;
     };
 
-    refreshIcon.addTo(leaf_map);
+    zoomResetIcon.addTo(leaf_map);
 
-    var resetIcon = L.control({
+
+
+    var toggleDashboardDiv = document.createElement('div');
+    toggleDashboardDiv.index = 1;
+
+    var toggleDashboardIcon = L.control({
         position: 'topleft'
     });
-    resetIcon.onAdd = function () {
+
+    toggleDashboardIcon.onAdd = function () {
+        zoomResetDiv.style.display = 'inline-block';
+        zoomResetDiv.style.float = 'center';
         this._div = L.DomUtil.create('div', 'myControl');
-        var img_log = "<div class='resetIcon' title='Clear Vehicle List ' onclick='deselectAllChecked()'><img src='imgs/reset.png'></img></div>";
+        var img_log = "<div class='homeIcon' title='toggle ' onclick='reset();'><img src='imgs/Dashboard.png'></img></div>";
         this._div.innerHTML = img_log;
         return this._div;
     };
 
-    resetIcon.addTo(leaf_map);
+    toggleDashboardIcon.addTo(leaf_map);
 
 
     function refreshMarkers() {
@@ -117,6 +134,14 @@ function init() {
         }
     });
     leaf_map.addControl(drawControl);
+
+    leaf_map.on('contextmenu', function (event) {
+        var content = showContextMenu(event.latlng, 'map');
+        var popup = L.popup().setLatLng(event.latlng).setContent(content)
+            .openOn(leaf_map);
+    });
+
+    L.control.weather().addTo(leaf_map);
 
 }
 
@@ -342,6 +367,117 @@ function actions() {
             drawnItems.removeLayer(layer);
         });
     });
+}
+
+function showContextMenu(currentLatLng, mapDiv) {
+    var latContext = currentLatLng.lat;
+    var lngContext = currentLatLng.lng;
+    var projection;
+    var contextmenuDir;
+    $('.contextmenu').remove();
+    contextmenuDir = document.createElement("div");
+    contextmenuDir.className = 'contextmenu';
+    if (navigationScript) {
+        console.log("navigationScript");
+        contextmenuDir.innerHTML = '<a href="javascript:void(0)" onclick="addLocationMarkerContext(true,'
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu1"><div class="context">  Direction from here  </div></a>'
+            + '<a href="javascript:void(0)" onclick="addLocationMarkerContext(false,'
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu2"><div class="context">  Direction to here  </div></a>'
+            + '<div class="context"><hr></div>'
+            + '<a href="javascript:void(0)" onclick="zoomInHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu3"><div class="context">  Zoom in here  </div></a>'
+            + '<a href="javascript:void(0)" onclick="zoomOutHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu4"><div class="context">  Zoom out here  </div></a>'
+            + '<div class="context"><hr></div>'
+            + '<a href="javascript:void(0)" onclick="centreMapHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu5"><div class="context">  Centre map here  </div></a>';
+    } else if (geoFenceScript) {
+        console.log("geoFenceScript");
+        contextmenuDir.innerHTML = '<a href="javascript:void(0)" onclick="addLocationMarkerContextWithoutNavigation(true,'
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu1"><div class="context">  Direction from here  </div></a>'
+            + '<a href="javascript:void(0)" onclick="addLocationMarkerContextWithoutNavigation(false,'
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu2"><div class="context">  Direction to here  </div></a>'
+            + '<div class="context"><hr></div>'
+            + '<a href="javascript:void(0)" onclick="zoomInHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu3"><div class="context">  Zoom in here  </div></a>'
+            + '<a href="javascript:void(0)" onclick="zoomOutHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu4"><div class="context">  Zoom out here  </div></a>'
+            + '<div class="context"><hr></div>'
+            + '<a href="javascript:void(0)" onclick="centreMapHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu5"><div class="context">  Centre map here  </div></a>';
+    } else {
+        console.log("else");
+        contextmenuDir.innerHTML = '<a href="javascript:void(0)" onclick="zoomInHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu3"><div class="context">  Zoom in here  </div></a>'
+            + '<a href="javascript:void(0)" onclick="zoomOutHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu4"><div class="context">  Zoom out here  </div></a>'
+            + '<div class="context"><hr></div>'
+            + '<a href="javascript:void(0)" onclick="centreMapHere('
+            + latContext
+            + ','
+            + lngContext
+            + ')" id="menu5"><div class="context">  Centre map here  </div></a>';
+    }
+    console.log("showContextMenu3");
+    // leaf_map.on('contextmenu' ,);
+
+    return '<a href="javascript:void(0)" onclick="zoomInHere('
+        + latContext
+        + ','
+        + lngContext
+        + ')" id="menu3"><div class="context">  Zoom in here  </div></a>'
+        + '<a href="javascript:void(0)" onclick="zoomOutHere('
+        + latContext
+        + ','
+        + lngContext
+        + ')" id="menu4"><div class="context">  Zoom out here  </div></a>'
+        + '<div class="context"><hr></div>'
+        + '<a href="javascript:void(0)" onclick="centreMapHere('
+        + latContext
+        + ','
+        + lngContext
+        + ')" id="menu5"><div class="context">  Centre map here  </div></a>';
+    /*
+     * $(mapDiv).append(contextmenuDir); setMenuXY(currentLatLng);
+     * console.log("showContextMenu4"); contextmenuDir.style.visibility =
+     * "visible"; console.log("showContextMenu5");
+     */
 }
 
 
