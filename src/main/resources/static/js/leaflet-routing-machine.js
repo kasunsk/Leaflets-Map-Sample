@@ -2023,7 +2023,7 @@
                     L.Routing.OSRMv1 = L.Class.extend({
                         options: {
                             //serviceUrl: 'http://maps.staging.nimbusventure.com/route/v1',
-                            serviceUrl: '../map_services_navigation_route',
+                            serviceUrl: 'http://maps2.nimbusventure.com/route/v1',
                             profile: 'driving',
                             timeout: 30 * 1000,
                             routingOptions: {

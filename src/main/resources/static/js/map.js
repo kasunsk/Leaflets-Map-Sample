@@ -8,6 +8,21 @@ var leaf_map;
 var latitude;
 var longitude;
 
+var navigationOn = true;
+
+var fromBool = true;
+
+var routingController;
+
+var fromMarker;
+
+var toMarker;
+
+var fromLocationLat;
+var fromLocationLng;
+var toLocationLat;
+var toLocationLng;
+
 var drawnItems;
 
 var drawControl;
@@ -31,6 +46,30 @@ function init() {
         maxZoom: 18,
         subdomains: '0123'
     }).addTo(leaf_map);
+
+    routingController = L.Routing.control({
+        waypoints : [],
+        geocoder : L.Control.Geocoder.nominatim(),
+        routeWhileDragging : true,
+        reverseWaypoints : true,
+        showAlternatives : true,
+        altLineOptions : {
+            styles : [ {
+                color : 'black',
+                opacity : 0.15,
+                weight : 9
+            }, {
+                color : 'white',
+                opacity : 0.8,
+                weight : 6
+            }, {
+                color : 'blue',
+                opacity : 0.5,
+                weight : 2
+            } ]
+        }
+    }).addTo(leaf_map);
+
 
     var zoomResetDiv = document.createElement('div');
     //var zoomReset = new ZoomReset(zoomResetDiv, map);
@@ -457,27 +496,95 @@ function showContextMenu(currentLatLng, mapDiv) {
     console.log("showContextMenu3");
     // leaf_map.on('contextmenu' ,);
 
-    return '<a href="javascript:void(0)" onclick="zoomInHere('
-        + latContext
-        + ','
-        + lngContext
-        + ')" id="menu3"><div class="context">  Zoom in here  </div></a>'
-        + '<a href="javascript:void(0)" onclick="zoomOutHere('
-        + latContext
-        + ','
-        + lngContext
-        + ')" id="menu4"><div class="context">  Zoom out here  </div></a>'
-        + '<div class="context"><hr></div>'
-        + '<a href="javascript:void(0)" onclick="centreMapHere('
-        + latContext
-        + ','
-        + lngContext
-        + ')" id="menu5"><div class="context">  Centre map here  </div></a>';
+    return contextmenuDir;
     /*
      * $(mapDiv).append(contextmenuDir); setMenuXY(currentLatLng);
      * console.log("showContextMenu4"); contextmenuDir.style.visibility =
      * "visible"; console.log("showContextMenu5");
      */
+}
+
+function addLocationMarkerContext(fromBool, latContext, lngContext) {
+    $('.contextmenu').remove();
+    if (!navigationOn) {
+        //clearAll();
+        navigationOn = true;
+    }
+    var iconInfo = L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/images/marker-icon.png',
+        iconSize: [24,36],
+        iconAnchor: [12,36]
+    });
+
+    var latlng = new L.LatLng(latContext, lngContext);
+    if (fromBool) {
+        addFromLocation(latContext, lngContext);
+        if (fromMarker != null) {
+            leaf_map.removeLayer(fromMarker);
+            fromMarker = null;
+        }
+        fromMarker = new L.marker(latlng, {icon: iconInfo}).addTo(leaf_map);
+    } else {
+        addToLocation(latContext, lngContext);
+        if (toMarker != null) {
+            leaf_map.removeLayer(toMarker);
+            toMarker = null;
+        }
+        toMarker = new L.marker(latlng,{icon: iconInfo}).addTo(leaf_map);
+    }
+}
+
+function addFromLocation(lat,lng){
+
+    fromLocationLat = lat;
+    fromLocationLng = lng;
+
+    if(!navigationOn){
+        navigationOn=true;
+    }
+    var address = lat + "," + lng;
+    //dijit.byId("fromLocationLatLng").attr("value",address);
+    var latlng = new L.LatLng(lat, lng);
+    // var reverseGeocodeObject = getReverseGeocoding(lng,lat);
+    // if(reverseGeocodeObject != null) {
+    //     dijit.byId("fromLocation").attr("value",reverseGeocodeObject.display_name);
+    // }
+    //dijit.byId("searchLocation").attr("value","");
+    if(fromMarker!=null){
+        leaf_map.removeLayer(fromMarker);
+        fromMarker = null;
+    }
+}
+
+function addToLocation(lat,lng){
+
+    toLocationLat = lat;
+    toLocationLng = lng;
+
+    var address = lat + "," + lng;
+    //dijit.byId("toLocationLatLng").attr("value",address);
+    var latlng = new L.LatLng(lat, lng);
+    // var reverseGeocodeObject = getReverseGeocoding(lng,lat);
+    // if(reverseGeocodeObject != null) {
+    //     dijit.byId("toLocation").attr("value",reverseGeocodeObject.display_name);
+    // }
+
+    //dijit.byId("searchLocation").attr("value","");
+    if(toMarker!=null){
+        leaf_map.removeLayer(toMarker);
+        toMarker = null;
+    }
+
+    getDirection();
+}
+
+function getDirection() {
+
+    routing = null;
+    routingController.spliceWaypoints(0, 1, L.latLng(fromLocationLat,fromLocationLng));
+    routingController.spliceWaypoints(routingController.getWaypoints().length - 1, 1, L.latLng(toLocationLat,toLocationLng));
+
+
 }
 
 

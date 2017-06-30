@@ -311,7 +311,7 @@
 	L.Control.Geocoder.Nominatim = L.Class.extend({
 		options: {
 			//serviceUrl: 'http://maps.staging.nimbusventure.com/nominatim/',
-			serviceUrl: '../map_services/nominatim/',
+			serviceUrl: 'http://maps2.nimbusventure.com/nominatim/',
 			geocodingQueryParams: {},
 			reverseQueryParams: {},
 			htmlTemplate: function(r) {
