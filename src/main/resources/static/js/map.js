@@ -53,6 +53,7 @@ function init() {
         routeWhileDragging : true,
         reverseWaypoints : true,
         showAlternatives : true,
+        waypointMode : 'connect',
         altLineOptions : {
             styles : [ {
                 color : 'black',
@@ -493,19 +494,12 @@ function showContextMenu(currentLatLng, mapDiv) {
             + lngContext
             + ')" id="menu5"><div class="context">  Centre map here  </div></a>';
     }
-    console.log("showContextMenu3");
-    // leaf_map.on('contextmenu' ,);
 
     return contextmenuDir;
-    /*
-     * $(mapDiv).append(contextmenuDir); setMenuXY(currentLatLng);
-     * console.log("showContextMenu4"); contextmenuDir.style.visibility =
-     * "visible"; console.log("showContextMenu5");
-     */
 }
 
 function addLocationMarkerContext(fromBool, latContext, lngContext) {
-    $('.contextmenu').remove();
+    leaf_map.closePopup();
     if (!navigationOn) {
         //clearAll();
         navigationOn = true;
@@ -535,7 +529,6 @@ function addLocationMarkerContext(fromBool, latContext, lngContext) {
 }
 
 function addFromLocation(lat,lng){
-
     fromLocationLat = lat;
     fromLocationLng = lng;
 
@@ -543,13 +536,7 @@ function addFromLocation(lat,lng){
         navigationOn=true;
     }
     var address = lat + "," + lng;
-    //dijit.byId("fromLocationLatLng").attr("value",address);
     var latlng = new L.LatLng(lat, lng);
-    // var reverseGeocodeObject = getReverseGeocoding(lng,lat);
-    // if(reverseGeocodeObject != null) {
-    //     dijit.byId("fromLocation").attr("value",reverseGeocodeObject.display_name);
-    // }
-    //dijit.byId("searchLocation").attr("value","");
     if(fromMarker!=null){
         leaf_map.removeLayer(fromMarker);
         fromMarker = null;
@@ -562,14 +549,7 @@ function addToLocation(lat,lng){
     toLocationLng = lng;
 
     var address = lat + "," + lng;
-    //dijit.byId("toLocationLatLng").attr("value",address);
     var latlng = new L.LatLng(lat, lng);
-    // var reverseGeocodeObject = getReverseGeocoding(lng,lat);
-    // if(reverseGeocodeObject != null) {
-    //     dijit.byId("toLocation").attr("value",reverseGeocodeObject.display_name);
-    // }
-
-    //dijit.byId("searchLocation").attr("value","");
     if(toMarker!=null){
         leaf_map.removeLayer(toMarker);
         toMarker = null;
@@ -584,6 +564,17 @@ function getDirection() {
     routingController.spliceWaypoints(0, 1, L.latLng(fromLocationLat,fromLocationLng));
     routingController.spliceWaypoints(routingController.getWaypoints().length - 1, 1, L.latLng(toLocationLat,toLocationLng));
 
+    $("#coordinateTable").empty();
+    $('#shape').text('Polyline : Route');
+        //$('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>');
+
+    routingController.on('routesfound', function (e) {
+        var firstRoute = e.routes[0];
+
+        for (var i = 0; i < firstRoute.coordinates.length ; i++) {
+            $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + firstRoute.coordinates [i] + '</td></tr>' );
+        }
+    });
 
 }
 
