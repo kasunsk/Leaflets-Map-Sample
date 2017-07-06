@@ -51,6 +51,8 @@ function init() {
         waypoints : [],
         geocoder : L.Control.Geocoder.nominatim(),
         routeWhileDragging : true,
+        draggableWaypoints: true,
+        addWaypoints: true,
         reverseWaypoints : true,
         showAlternatives : true,
         waypointMode : 'connect',
@@ -70,6 +72,8 @@ function init() {
             } ]
         }
     }).addTo(leaf_map);
+
+    L.Routing.errorControl(routingController).addTo(leaf_map);
 
 
     var zoomResetDiv = document.createElement('div');
