@@ -96,49 +96,30 @@ function init() {
 
     zoomResetIcon.addTo(leaf_map);
 
-
-
-    var toggleDashboardDiv = document.createElement('div');
-    toggleDashboardDiv.index = 1;
-
-    var toggleDashboardIcon = L.control({
-        position: 'topleft'
-    });
-
-    toggleDashboardIcon.onAdd = function () {
-        zoomResetDiv.style.display = 'inline-block';
-        zoomResetDiv.style.float = 'center';
-        this._div = L.DomUtil.create('div', 'myControl');
-        var img_log = "<div class='homeIcon' title='toggle ' onclick='reset();'><img src='imgs/Dashboard.png'></img></div>";
-        this._div.innerHTML = img_log;
-        return this._div;
-    };
-
-    toggleDashboardIcon.addTo(leaf_map);
-
-
     function refreshMarkers() {
     }
 
-    var cameraDiv = L.control({
-        position: 'topleft'
+    var myCustomIcon = L.icon({
+            shadowUrl: null,
+            iconAnchor: [12, 12],
+            iconSize: [24, 24],
+            iconUrl: 'imgs/image.png'
     });
 
-    cameraDiv.onAdd = function () {
-        this._div = L.DomUtil.create('div', 'myControl');
-        var img_log = "<div class='homeIcon' title='toggle ' onclick='startPolling()'><img src='imgs/camera.png'></img></div>";
-        this._div.innerHTML = img_log;
-        return this._div;
-    };
-    cameraDiv.addTo(leaf_map);
+    var marker = L.marker([7.872453, 80.771496],{
+        draggable: true,        // Make the icon dragable
+        clickable: true,
+        icon : myCustomIcon
+    }).addTo(leaf_map);
 
-    var MyCustomMarker = L.Icon.extend({
-        options: {
-            shadowUrl: null,
-            iconAnchor: new L.Point(12, 12),
-            iconSize: new L.Point(24, 24),
-            iconUrl: 'imgs/image.png'
-        }
+    marker.on('drag', function (e) {
+
+        var latlng = e.target.editing._marker._latlng;
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Marker');
+
+            $('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + L.latLng([latlng.lat, latlng.lng]) + '</td></tr>');
     });
 
     drawnItems = new L.FeatureGroup();
@@ -169,7 +150,7 @@ function init() {
                 }
             },
             marker: {
-                icon: new MyCustomMarker()
+                icon: myCustomIcon
             }
         },
         edit: {
