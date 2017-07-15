@@ -31,7 +31,7 @@ var navigationScript = true;
 
 function init() {
 
-    leaf_map = L.map('mapid').setView([7.872453, 80.771496], 7);
+    leaf_map = L.map('mapid', {editable: true}).setView([7.872453, 80.771496], 7);
 
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
         maxZoom: 18,
@@ -52,13 +52,163 @@ function init() {
      + ')"></a> </td><td style="color:#00FF00">Speed Alert On</td></tr><tr><td colspan="2"><hr></td></tr><tr><td><a href="#"><img src="imgs/add.png" alt="add.png" width="15px" height="15px" onclick="addFromLocation(6.916650295257568,79.86936950683594)"></a> </td><td>Direction from here</td></tr><tr><td colspan="2"> </td></tr></tbody></table></td><td><table border="0" style="margin-right:5px; margin-left:5px;"><tbody><tr><td><img src="imgs/pp/down.png" title="click to view service details" id="serviceDataDownIcon" onclick="expandServiceDetail()" style="cursor:pointer;"></td></tr><tr><td><img src="imgs/pp/up.png" id="serviceDataUpIcon" title="click to hide service details" onclick="collapseServiceDetail()" style="cursor:pointer;"></td></tr></tbody></table></td><td style="vertical-align:top;"><table border="0" style="width:210px;display:none;margin-right:10px;" id="serviceTable"><tbody><tr><td colspan="2">Service Details</td></tr><tr><td colspan="2"></td></tr><tr><td>ODO Meter (*)</td> <td>0.9 Km</td></tr><tr><td>Trip Meter</td> <td>0.9 Km</td></tr><tr><td>Last Service Date</td> <td>2015-06-09</td></tr><tr><td>Last Service Mileage</td> <td>0 Km</td></tr><tr><td><font color="red">Next Service Date</font></td> <td><font color="red">2015-06-09</font></td></tr><tr><td><font color="red">Next Service Mileage</font></td> <td><font color="red">0 Km </font></td></tr></tbody></table></td></tr></tbody></table>';
 
 
-    var myIcon = L.icon({
-        iconUrl: 'imgs/image.png',
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
-        labelAnchor: [6, 0] // as I want the label to appear 2px past the icon (10 + 2 - 6)
+    addZoomResetControl();
+
+    addToolTipDrawControl();
+    
+    addToolTipControl();
+
+    var myCustomIcon = L.icon({
+        shadowUrl: null,
+        iconAnchor: [12, 12],
+        iconSize: [24, 24],
+        iconUrl: 'imgs/image.png'
     });
 
+    //initDrawControl();
+
+    leaf_map.on('contextmenu', function (event) {
+        var content = showContextMenu(event.latlng, 'map');
+        var popup = L.popup().setLatLng(event.latlng).setContent(content)
+            .openOn(leaf_map);
+    });
+
+    L.control.weather().addTo(leaf_map);
+
+    //marker.bindPopup(str);
+
+}
+
+function addToolTipDrawControl() {
+
+    L.EditControl = L.Control.extend({
+        options: {
+            position: 'topright',
+            callback: null,
+            kind: '',
+            html: ''
+        },
+
+        onAdd: function (map) {
+            var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
+                link = L.DomUtil.create('a', '', container);
+
+            link.href = '#';
+            link.title = 'Create a new ' + this.options.kind;
+            link.innerHTML = this.options.html;
+            L.DomEvent
+                .on(link, 'click', L.DomEvent.stop)
+                .on(link, 'click', function () {
+                    window.LAYER = this.options.callback(null, {});
+                }, this);
+
+            return container;
+        }
+    });
+
+    L.NewLineControl = L.EditControl.extend({
+        options: {
+            position: 'topleft',
+            callback: L.Util.bind(leaf_map.editTools.startPolyline, leaf_map.editTools),
+            kind: 'line',
+            html: '\\/\\'
+        }
+    });
+
+    L.NewPolygonControl = L.EditControl.extend({
+        options: {
+            position: 'topleft',
+            callback: L.Util.bind(leaf_map.editTools.startPolygon, leaf_map.editTools),
+            kind: 'polygon',
+            html: '▰'
+        }
+    });
+
+    L.NewMarkerControl = L.EditControl.extend({
+        options: {
+            position: 'topleft',
+            callback: L.Util.bind(leaf_map.editTools.startMarker, leaf_map.editTools),
+            kind: 'marker',
+            html: '🖈'
+        }
+    });
+
+    L.NewRectangleControl = L.EditControl.extend({
+        options: {
+            position: 'topleft',
+            callback: L.Util.bind(leaf_map.editTools.startRectangle, leaf_map.editTools),
+            kind: 'rectangle',
+            draggable: true,
+            html: '⬛'
+        }
+    });
+
+    L.NewCircleControl = L.EditControl.extend({
+        options: {
+            position: 'topleft',
+            callback: L.Util.bind(leaf_map.editTools.startCircle, leaf_map.editTools),
+            kind: 'circle',
+            html: '⬤'
+        }
+    });
+
+    [
+        new L.NewMarkerControl(),
+        new L.NewLineControl(), new L.NewPolygonControl(),
+        new L.NewRectangleControl(), new L.NewCircleControl()
+    ].forEach(leaf_map.addControl, leaf_map);
+}
+
+var tooltip;
+
+function addToolTipControl() {
+
+    var bounds = leaf_map.getBounds().pad(0.25); // slightly out of screen
+    tooltip = L.tooltip({
+        position: 'left',
+        noWrap: true
+    })
+        .addTo(leaf_map)
+        .setContent('Start drawing to see tooltip change')
+        .setLatLng(new L.LatLng(bounds.getNorth(), bounds.getCenter().lng));
+
+    leaf_map
+        .on('mousemove', updateTooltip)
+        .on('editable:drawing:start', function(evt) {
+            var text = getTooltipText(evt.layer);
+            tooltip.setContent(text);
+        })
+        .on('editable:drawing:clicked', function(evt) {
+            tooltip
+                .setContent(getTooltipText(evt.layer, true))
+                .updatePosition(evt.layerPoint);
+        })
+        .on('editable:drawing:end', function(evt) {
+            tooltip.setContent('Start drawing to see tooltip change');
+        });
+}
+
+function getTooltipText(layer, started) {
+    if (layer instanceof L.Rectangle) {
+        return 'Click and drag to draw the rectangle';
+    } else if (layer instanceof L.Polygon || layer instanceof L.Polyline) {
+        if (started) {
+            return 'Click last point to <span style="color: #B3E5FC">finish</span> drawing';
+        } else {
+            return 'Click on the map to start drawing';
+        }
+    } else if (layer instanceof L.Marker) {
+        return 'Click on the map to put the marker';
+    } else if (layer instanceof L.Circle) {
+        return 'Click and drag to draw a circle';
+    }
+}
+
+function updateTooltip(evt) {
+    tooltip.updatePosition(evt.layerPoint);
+}
+
+function addZoomResetControl() {
     var zoomResetDiv = document.createElement('div');
     //var zoomReset = new ZoomReset(zoomResetDiv, map);
 
@@ -78,32 +228,9 @@ function init() {
     };
 
     zoomResetIcon.addTo(leaf_map);
+}
 
-    var toggleDashboardDiv = document.createElement('div');
-    var toggleDashboard = new ToggleDashboard(toggleDashboardDiv, leaf_map);
-
-    toggleDashboardDiv.index = 1;
-    var toggleDashboardIcon = L.control({
-        position: 'topleft'
-    });
-
-    toggleDashboardIcon.onAdd = function () {
-        toggleDashboardDiv.style.display = 'inline-block';
-        toggleDashboardDiv.style.float = 'center';
-        this._div = toggleDashboardDiv;
-        return this._div;
-    };
-    toggleDashboardIcon.addTo(leaf_map);
-
-    function refreshMarkers() {
-    }
-
-    var myCustomIcon = L.icon({
-        shadowUrl: null,
-        iconAnchor: [12, 12],
-        iconSize: [24, 24],
-        iconUrl: 'imgs/image.png'
-    });
+function initDrawControl() {
 
     drawnItems = new L.FeatureGroup();
     leaf_map.addLayer(drawnItems);
@@ -142,16 +269,6 @@ function init() {
         }
     });
     leaf_map.addControl(drawControl);
-
-    leaf_map.on('contextmenu', function (event) {
-        var content = showContextMenu(event.latlng, 'map');
-        var popup = L.popup().setLatLng(event.latlng).setContent(content)
-            .openOn(leaf_map);
-    });
-
-    L.control.weather().addTo(leaf_map);
-
-    //marker.bindPopup(str);
 
 }
 
