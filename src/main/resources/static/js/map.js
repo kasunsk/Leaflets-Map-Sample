@@ -47,34 +47,17 @@ function init() {
         subdomains: '0123'
     }).addTo(leaf_map);
 
-    routingController = L.Routing.control({
-        waypoints : [],
-        geocoder : L.Control.Geocoder.nominatim(),
-        routeWhileDragging : true,
-        draggableWaypoints: true,
-        addWaypoints: true,
-        reverseWaypoints : true,
-        showAlternatives : true,
-        waypointMode : 'connect',
-        altLineOptions : {
-            styles : [ {
-                color : 'black',
-                opacity : 0.15,
-                weight : 9
-            }, {
-                color : 'white',
-                opacity : 0.8,
-                weight : 6
-            }, {
-                color : 'blue',
-                opacity : 0.5,
-                weight : 2
-            } ]
-        }
-    }).addTo(leaf_map);
+    var str = '<table border="0"><tbody><tr><td><table border="0" width="250px" style="float:left"><tbody><tr><td colspan="3">2015 Thu January 15, 2:45:34 PM</td></tr><tr><td width="15%" rowspan="4"><img src="imgs/pp/type_4.png" width="54px" hight="36px"></td><td colspan="2">LK-2519</td></tr><tr><td>0km/h</td></tr><tr><td> </td></tr><tr><td> </td></tr><tr><td> </td></tr><tr><td><img src="imgs/pp/engineg.png" width="20px" hight="20px"></td> <td style="color:#00FF00">Ignition On</td> </tr><tr><td colspan="2"> </td></tr><tr><td><img src="imgs/pp/redf.png" width="20px" hight="20px"></td><td>-25.07/351 l</td></tr><tr><td><img src="imgs/pp/redb.png" width="30px" hight="20px"></td><td>0 V</td></tr><tr><td colspan="2"> </td></tr><tr><td><a href="#"><img src="imgs/zoom.png" alt="zoom.png" width="15px" height="15px" onclick="locateVehicle(6.916650295257568,79.86936950683594)"></a> </td><td>Locate Vehicle</td></tr><tr><td colspan="3"><hr></td></tr><tr><td><a href="#"><img src="imgs/correct.png" alt="correct.png" width="15px" height="15px" onclick="changeSpeedAlert(false,'
+     + 'LK - 2519'
+     + ')"></a> </td><td style="color:#00FF00">Speed Alert On</td></tr><tr><td colspan="2"><hr></td></tr><tr><td><a href="#"><img src="imgs/add.png" alt="add.png" width="15px" height="15px" onclick="addFromLocation(6.916650295257568,79.86936950683594)"></a> </td><td>Direction from here</td></tr><tr><td colspan="2"> </td></tr></tbody></table></td><td><table border="0" style="margin-right:5px; margin-left:5px;"><tbody><tr><td><img src="imgs/pp/down.png" title="click to view service details" id="serviceDataDownIcon" onclick="expandServiceDetail()" style="cursor:pointer;"></td></tr><tr><td><img src="imgs/pp/up.png" id="serviceDataUpIcon" title="click to hide service details" onclick="collapseServiceDetail()" style="cursor:pointer;"></td></tr></tbody></table></td><td style="vertical-align:top;"><table border="0" style="width:210px;display:none;margin-right:10px;" id="serviceTable"><tbody><tr><td colspan="2">Service Details</td></tr><tr><td colspan="2"></td></tr><tr><td>ODO Meter (*)</td> <td>0.9 Km</td></tr><tr><td>Trip Meter</td> <td>0.9 Km</td></tr><tr><td>Last Service Date</td> <td>2015-06-09</td></tr><tr><td>Last Service Mileage</td> <td>0 Km</td></tr><tr><td><font color="red">Next Service Date</font></td> <td><font color="red">2015-06-09</font></td></tr><tr><td><font color="red">Next Service Mileage</font></td> <td><font color="red">0 Km </font></td></tr></tbody></table></td></tr></tbody></table>';
 
-    L.Routing.errorControl(routingController).addTo(leaf_map);
 
+    var myIcon = L.icon({
+        iconUrl: 'imgs/image.png',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        labelAnchor: [6, 0] // as I want the label to appear 2px past the icon (10 + 2 - 6)
+    });
 
     var zoomResetDiv = document.createElement('div');
     //var zoomReset = new ZoomReset(zoomResetDiv, map);
@@ -96,30 +79,30 @@ function init() {
 
     zoomResetIcon.addTo(leaf_map);
 
+    var toggleDashboardDiv = document.createElement('div');
+    var toggleDashboard = new ToggleDashboard(toggleDashboardDiv, leaf_map);
+
+    toggleDashboardDiv.index = 1;
+    var toggleDashboardIcon = L.control({
+        position: 'topleft'
+    });
+
+    toggleDashboardIcon.onAdd = function () {
+        toggleDashboardDiv.style.display = 'inline-block';
+        toggleDashboardDiv.style.float = 'center';
+        this._div = toggleDashboardDiv;
+        return this._div;
+    };
+    toggleDashboardIcon.addTo(leaf_map);
+
     function refreshMarkers() {
     }
 
     var myCustomIcon = L.icon({
-            shadowUrl: null,
-            iconAnchor: [12, 12],
-            iconSize: [24, 24],
-            iconUrl: 'imgs/image.png'
-    });
-
-    var marker = L.marker([7.872453, 80.771496],{
-        draggable: true,        // Make the icon dragable
-        clickable: true,
-        icon : myCustomIcon
-    }).addTo(leaf_map);
-
-    marker.on('drag', function (e) {
-
-        var latlng = e.target.editing._marker._latlng;
-
-            $("#coordinateTable").empty();
-            $('#shape').text('Marker');
-
-            $('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + L.latLng([latlng.lat, latlng.lng]) + '</td></tr>');
+        shadowUrl: null,
+        iconAnchor: [12, 12],
+        iconSize: [24, 24],
+        iconUrl: 'imgs/image.png'
     });
 
     drawnItems = new L.FeatureGroup();
@@ -168,6 +151,134 @@ function init() {
 
     L.control.weather().addTo(leaf_map);
 
+    //marker.bindPopup(str);
+
+}
+
+function expandServiceDetail() {
+    // $(".serviceData").show();
+    $("#serviceTable").css("display", "block");
+    $("#serviceDataDownIcon").hide();
+    $("#serviceDataUpIcon").show();
+    // $("#serviceDataIcon").attr("src", "imgs/pp/up.png");
+
+}
+
+function collapseServiceDetail() {
+    $("#serviceTable").css("display", "none");
+    $("#serviceDataDownIcon").show();
+    $("#serviceDataUpIcon").hide();
+
+}
+
+
+function ToggleDashboard(controlDiv, map) {
+
+    // Set CSS styles for the DIV containing the control
+    // Setting padding to 5 px will offset the control
+    // from the edge of the map.
+    controlDiv.style.paddingLeft = '5px';
+    controlDiv.style.paddingTop = '15px';
+
+    // Set CSS for the control border.
+    var controlUI = document.createElement('div');
+    controlUI.id = 'toggleDashboardId';
+    controlUI.style.cursor = 'pointer';
+    controlUI.style.padding = '0px';
+    controlUI.style.margin = '0px';
+    controlUI.title = 'Toggle Dashboard';
+    controlDiv.appendChild(controlUI);
+
+    // Set CSS for the control interior.
+    var controlText = document.createElement('div');
+    controlText.style.padding = '0px';
+    controlText.style.margin = '0px';
+    controlText.innerHTML = "<img src='imgs/Dashboard.png' alt='Dashboard.png' width='20px' height='20px'/>";
+    controlUI.appendChild(controlText);
+
+    // Setup the click event listeners: simply set the map to Chicago.
+    L.DomEvent.addListener(controlUI, 'click', function () {
+        dijit.byId("carDashboard").toggle();
+    });
+}
+
+function initNavigation() {
+
+    var startIcon = L.icon({
+        iconUrl: 'imgs/start_location.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    });
+
+    var endIcon = L.icon({
+        iconUrl: 'imgs/end_location.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    });
+
+    var viaIcon = L.icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/images/marker-icon.png',
+        iconSize: [30, 30],
+        iconAnchor: [15, 30]
+    });
+
+    routingController = L.Routing.control({
+
+        createMarker : function(i, wp, nWps) {
+            if (i === 0) {
+                var startMarker = L.marker(wp.latLng, {icon: startIcon, draggable:true});
+                return startMarker;
+            }
+            else if (i === nWps - 1) {
+                    return L.marker(wp.latLng, {icon: endIcon });
+            } else {
+                return L.marker(wp.latLng, {icon: viaIcon, draggable: true });
+            }
+        },
+        waypoints: [],
+        geocoder: L.Control.Geocoder.nominatim(),
+        routeWhileDragging: true,
+        draggableWaypoints: true,
+        addWaypoints: true,
+        reverseWaypoints: true,
+        showAlternatives: true,
+        waypointMode: 'connect',
+        altLineOptions: {
+            styles: [{
+                color: 'black',
+                opacity: 0.15,
+                weight: 9
+            }, {
+                color: 'white',
+                opacity: 0.8,
+                weight: 6
+            }, {
+                color: 'blue',
+                opacity: 0.5,
+                weight: 2
+            }]
+        }
+    }).addTo(leaf_map);
+
+    // L.Routing.errorControl(routingController).addTo(leaf_map);
+}
+
+function addOrRemoveNavigation() {
+    if (routingController == null) {
+        initNavigation();
+    } else {
+        leaf_map.removeControl(routingController);
+        routingController = null;
+    }
+}
+
+function getReverseGeocoding(longitude,latitude) {
+    var locationServiceUrl = ROOT_URL + REVERSE_GEO_CORDING_BASE_URL
+        + latitude
+        + '&lon='
+        + longitude
+        + '&zoom=18&addressdetails=1&email=maps@nimbusventure.com&accept-language=en-US';
+    return httpGet(locationServiceUrl);
 }
 
 function actions() {
@@ -199,8 +310,8 @@ function actions() {
 
     leaf_map.on('draw:created', function (e) {
 
-         type = e.layerType;
-         var layer = e.layer;
+        type = e.layerType;
+        var layer = e.layer;
 
         leaf_map.addLayer(layer);
 
@@ -209,7 +320,7 @@ function actions() {
             $("#coordinateTable").empty();
             $('#shape').text('Marker');
 
-            $('#coordinateTable').append( '<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>');
         }
 
         if (type === 'rectangle') {
@@ -217,18 +328,18 @@ function actions() {
             $("#coordinateTable").empty();
             $('#shape').text('Rectangle');
 
-            $('#coordinateTable').append( '<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>' );
-            $('#coordinateTable').append( '<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>');
         }
 
         if (type === 'circle') {
 
             $("#coordinateTable").empty();
             $('#shape').text('Circle');
-            var center =  layer.getLatLng();
+            var center = layer.getLatLng();
 
-            $('#coordinateTable').append( '<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>' );
-            $('#coordinateTable').append( '<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>');
 
         }
 
@@ -238,8 +349,8 @@ function actions() {
             $('#shape').text('Polyline');
 
             var latlngs = layer.getLatLngs();
-            for(var i = 0; i < latlngs.length; i++){
-                $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
             }
         }
 
@@ -248,8 +359,8 @@ function actions() {
             $("#coordinateTable").empty();
             $('#shape').text('Polygon');
             var latlngs = layer.getLatLngs();
-            for(var i = 0; i < latlngs.length; i++){
-                $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
             }
         }
 
@@ -267,26 +378,25 @@ function actions() {
             $("#coordinateTable").empty();
             $('#shape').text('Marker');
 
-            $('#coordinateTable').append( '<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>');
         }
 
         if (type === 'circle') {
 
             $("#coordinateTable").empty();
             $('#shape').text('Circle');
-            var center =  layer.getLatLng();
+            var center = layer.getLatLng();
 
-            $('#coordinateTable').append( '<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>' );
-            $('#coordinateTable').append( '<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>');
         }
 
-        if (type === 'rectangle')
-        {
+        if (type === 'rectangle') {
             $("#coordinateTable").empty();
             $('#shape').text('Rectangle');
 
-            $('#coordinateTable').append( '<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>' );
-            $('#coordinateTable').append( '<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>');
         }
 
         if (type === 'polygon') {
@@ -294,8 +404,8 @@ function actions() {
             $("#coordinateTable").empty();
             $('#shape').text('Polygon');
             var latlngs = layer.getLatLngs();
-            for(var i = 0; i < latlngs.length; i++){
-                $('#coordinateTable').append( '<tr><td>' + 'Coordinate '+  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
             }
         }
 
@@ -306,23 +416,21 @@ function actions() {
 
         var layer = e.layer;
 
-        if (type === 'circle')
-        {
+        if (type === 'circle') {
             $("#coordinateTable").empty();
             $('#shape').text('Circle');
-            var center =  layer.getLatLng();
+            var center = layer.getLatLng();
 
-            $('#coordinateTable').append( '<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>' );
-            $('#coordinateTable').append( '<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>');
         }
 
-        if (type === 'rectangle')
-        {
+        if (type === 'rectangle') {
             $("#coordinateTable").empty();
             $('#shape').text('Rectangle');
 
-            $('#coordinateTable').append( '<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>' );
-            $('#coordinateTable').append( '<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>' );
+            $('#coordinateTable').append('<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>');
         }
 
         if (type === 'polyline') {
@@ -331,8 +439,8 @@ function actions() {
             $('#shape').text('Polyline');
 
             var latlngs = layer.getLatLngs();
-            for(var i = 0; i < latlngs.length; i++){
-                $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>' );
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
             }
         }
 
@@ -491,51 +599,56 @@ function addLocationMarkerContext(fromBool, latContext, lngContext) {
     }
     var iconInfo = L.icon({
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/images/marker-icon.png',
-        iconSize: [24,36],
-        iconAnchor: [12,36]
+        iconSize: [24, 36],
+        iconAnchor: [12, 36]
     });
 
     var latlng = new L.LatLng(latContext, lngContext);
     if (fromBool) {
+        fromMarker = new L.marker(latlng, {icon: iconInfo}).addTo(leaf_map);
         addFromLocation(latContext, lngContext);
         if (fromMarker != null) {
-            leaf_map.removeLayer(fromMarker);
-            fromMarker = null;
+            // leaf_map.removeLayer(fromMarker);
+            // fromMarker = null;
         }
-        fromMarker = new L.marker(latlng, {icon: iconInfo}).addTo(leaf_map);
     } else {
+        toMarker = new L.marker(latlng, {icon: iconInfo}).addTo(leaf_map);
         addToLocation(latContext, lngContext);
         if (toMarker != null) {
             leaf_map.removeLayer(toMarker);
             toMarker = null;
         }
-        toMarker = new L.marker(latlng,{icon: iconInfo}).addTo(leaf_map);
+
+        if (fromMarker != null) {
+            leaf_map.removeLayer(fromMarker);
+            fromMarker = null;
+        }
     }
 }
 
-function addFromLocation(lat,lng){
+function addFromLocation(lat, lng) {
     fromLocationLat = lat;
     fromLocationLng = lng;
 
-    if(!navigationOn){
-        navigationOn=true;
+    if (!navigationOn) {
+        navigationOn = true;
     }
     var address = lat + "," + lng;
     var latlng = new L.LatLng(lat, lng);
-    if(fromMarker!=null){
-        leaf_map.removeLayer(fromMarker);
-        fromMarker = null;
+    if (fromMarker != null) {
+        // leaf_map.removeLayer(fromMarker);
+        // fromMarker = null;
     }
 }
 
-function addToLocation(lat,lng){
+function addToLocation(lat, lng) {
 
     toLocationLat = lat;
     toLocationLng = lng;
 
     var address = lat + "," + lng;
     var latlng = new L.LatLng(lat, lng);
-    if(toMarker!=null){
+    if (toMarker != null) {
         leaf_map.removeLayer(toMarker);
         toMarker = null;
     }
@@ -545,19 +658,23 @@ function addToLocation(lat,lng){
 
 function getDirection() {
 
+    if (routingController == null) {
+        initNavigation();
+    }
+
     routing = null;
-    routingController.spliceWaypoints(0, 1, L.latLng(fromLocationLat,fromLocationLng));
-    routingController.spliceWaypoints(routingController.getWaypoints().length - 1, 1, L.latLng(toLocationLat,toLocationLng));
+    routingController.spliceWaypoints(0, 1, L.latLng(fromLocationLat, fromLocationLng));
+    routingController.spliceWaypoints(routingController.getWaypoints().length - 1, 1, L.latLng(toLocationLat, toLocationLng));
 
     $("#coordinateTable").empty();
     $('#shape').text('Polyline : Route');
-        //$('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>');
+    //$('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>');
 
     routingController.on('routesfound', function (e) {
         var firstRoute = e.routes[0];
 
-        for (var i = 0; i < firstRoute.coordinates.length ; i++) {
-            $('#coordinateTable').append( '<tr><td>' + 'Coordinate ' +  ( i + 1) + '</td><td>' + firstRoute.coordinates [i] + '</td></tr>' );
+        for (var i = 0; i < firstRoute.coordinates.length; i++) {
+            $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + firstRoute.coordinates [i] + '</td></tr>');
         }
     });
 
