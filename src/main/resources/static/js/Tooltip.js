@@ -1,75 +1,122 @@
-L.Tooltip = L.Class.extend({
-	initialize: function (map) {
-		this._map = map;
-		this._popupPane = map._panes.popupPane;
-
-		this._container = map.options.drawControlTooltips ? L.DomUtil.create('div', 'leaflet-draw-tooltip', this._popupPane) : null;
-		this._singleLineLabel = false;
-
-		this._map.on('mouseout', this._onMouseOut, this);
-	},
-
-	dispose: function () {
-		this._map.off('mouseout', this._onMouseOut, this);
-
-		if (this._container) {
-			this._popupPane.removeChild(this._container);
-			this._container = null;
-		}
-	},
-
-	updateContent: function (labelText) {
-		if (!this._container) {
-			return this;
-		}
-		labelText.subtext = labelText.subtext || '';
-
-		// update the vertical position (only if changed)
-		if (labelText.subtext.length === 0 && !this._singleLineLabel) {
-			L.DomUtil.addClass(this._container, 'leaflet-draw-tooltip-single');
-			this._singleLineLabel = true;
-		}
-		else if (labelText.subtext.length > 0 && this._singleLineLabel) {
-			L.DomUtil.removeClass(this._container, 'leaflet-draw-tooltip-single');
-			this._singleLineLabel = false;
-		}
-
-		this._container.innerHTML =
-			(labelText.subtext.length > 0 ? '<span class="leaflet-draw-tooltip-subtext">' + labelText.subtext + '</span>' + '<br />' : '') +
-			'<span>' + labelText.text + '</span>';
-
-		return this;
-	},
-
-	updatePosition: function (latlng) {
-		var pos = this._map.latLngToLayerPoint(latlng),
-			tooltipContainer = this._container;
-
-		if (this._container) {
-			tooltipContainer.style.visibility = 'inherit';
-			L.DomUtil.setPosition(tooltipContainer, pos);
-		}
-
-		return this;
-	},
-
-	showAsError: function () {
-		if (this._container) {
-			L.DomUtil.addClass(this._container, 'leaflet-error-draw-tooltip');
-		}
-		return this;
-	},
-
-	removeError: function () {
-		if (this._container) {
-			L.DomUtil.removeClass(this._container, 'leaflet-error-draw-tooltip');
-		}
-		return this;
-	},
-
-	_onMouseOut: function () {
-		if (this._container) {
-			this._container.style.visibility = 'hidden';
-		}
-	}
+L.Tooltip = L.Layer.extend({
+    options: {
+        pane: "popupPane",
+        nonBubblingEvents: ["mouseover", "mousemove"],
+        position: "left",
+        className: "tooltip",
+        arrowClass: "tooltip-arrow",
+        contentClass: "tooltip-inner",
+        subtextClass: "tooltip-subtext",
+        showClass: "in",
+        noWrap: false,
+        wrapScreen: true,
+        offset: [10, 5]
+    },
+    statics: {POSITIONS: {TOP: "top", LEFT: "left", BOTTOM: "bottom", RIGHT: "right"}},
+    initialize: function (t, i) {
+        this._container = null;
+        this._arrow = null;
+        this._contentNode = null;
+        this._subtext = null;
+        L.Util.setOptions(this, t);
+        this._source = i
+    },
+    _initLayout: function () {
+        var t = this.options;
+        if (t.noWrap) {
+            t.className += " nowrap"
+        }
+        this._container = L.DomUtil.create("div", t.className + " " + t.position + " " + t.showClass);
+        this._arrow = L.DomUtil.create("div", t.arrowClass, this._container);
+        this._contentNode = L.DomUtil.create("div", t.contentClass, this._container);
+        this._subtext = L.DomUtil.create("div", t.subtextClass, this._container)
+    },
+    onAdd: function (t) {
+        this._map = t;
+        this._initLayout();
+        if (this.options.content) {
+            this.setContent(this.options.content)
+        }
+        this.getPane().appendChild(this._container);
+        this._map.on("zoomend", this.updatePosition, this);
+        return this
+    },
+    show: function () {
+        L.DomUtil.addClass(this._container, this.options.showClass);
+        return this
+    },
+    hide: function () {
+        L.DomUtil.removeClass(this._container, this.options.showClass);
+        return this
+    },
+    onRemove: function (t) {
+        L.Util.cancelAnimFrame(this._updateTimer);
+        this.getPane().removeChild(this._container);
+        this._map.off("zoomend", this.updatePosition, this);
+        this._map = null;
+        return this
+    },
+    setContent: function (t) {
+        this.options.content = t;
+        if (this._map) {
+            this._contentNode.innerHTML = t;
+            this.updatePosition()
+        }
+        return this
+    },
+    setSubtext: function (t) {
+        this._subtext.innerHTML = t;
+        this.updatePosition();
+        return this
+    },
+    setLatLng: function (t) {
+        this._latlng = t;
+        this.updatePosition();
+        return this
+    },
+    _getOffset: function (t, i) {
+        var o = this._container;
+        var n = this.options;
+        var s = o.offsetWidth;
+        var e = o.offsetHeight;
+        var a = L.Tooltip.POSITIONS;
+        if (this.options.wrapScreen) {
+            var r = this._map.getSize();
+            t = this._map.layerPointToContainerPoint(t);
+            if (t.x + s / 2 > r.x) {
+                i = a.LEFT
+            }
+            if (t.x - s < 0) {
+                i = a.RIGHT
+            }
+            if (t.y - e < 0) {
+                i = a.BOTTOM
+            }
+            if (t.y + e > r.y) {
+                i = a.TOP
+            }
+        }
+        this._container.className = n.className + " " + i + " " + n.showClass;
+        var h = n.offset;
+        if (i === a.LEFT) {
+            return new L.Point(-s - h[0], -e / 2)._floor()
+        } else if (i === a.RIGHT) {
+            return new L.Point(0 + h[0], -e / 2)._floor()
+        } else if (i === a.TOP) {
+            return new L.Point(-s / 2, -e - h[1])._floor()
+        } else if (i === a.BOTTOM) {
+            return new L.Point(-s / 2, 0 + h[1])._floor()
+        }
+    },
+    updatePosition: function (t) {
+        this._updateTimer = L.Util.requestAnimFrame(function () {
+            if (this._map) {
+                t = t || this._map.latLngToLayerPoint(this._latlng);
+                L.DomUtil.setPosition(this._container, t.add(this._getOffset(t, this.options.position))._floor())
+            }
+        }, this)
+    }
 });
+L.tooltip = function (t, i) {
+    return new L.Tooltip(t, i)
+};

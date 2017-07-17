@@ -24,6 +24,7 @@ var toLocationLat;
 var toLocationLng;
 
 var drawnItems;
+var drawnPollyItems = [];
 
 var drawControl;
 
@@ -56,6 +57,8 @@ function init() {
 
     addToolTipDrawControl();
     
+    addDrawingEvents();
+    
     addToolTipControl();
 
     var myCustomIcon = L.icon({
@@ -79,6 +82,95 @@ function init() {
 
 }
 
+function addDrawingEvents() {
+
+    leaf_map.on('editable:editing', function (e) {
+
+        var layer = e.layer;
+
+        leaf_map.addLayer(layer);
+
+        if (e.layer instanceof L.Marker) {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Marker');
+
+            $('#coordinateTable').append('<tr><td>' + 'Lat & Lng : ' + '</td><td>' + layer.getLatLng() + '</td></tr>');
+        }
+
+        if (e.layer instanceof L.Rectangle) {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Rectangle');
+
+            $('#coordinateTable').append('<tr><td>' + 'NE : ' + '</td><td>' + layer.getBounds().getNorthEast() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'SW : ' + '</td><td>' + layer.getBounds().getSouthWest() + '</td></tr>');
+        }
+
+        if (e.layer instanceof L.Circle) {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Circle');
+            var center = layer.getLatLng();
+
+            $('#coordinateTable').append('<tr><td>' + 'Radius ' + '</td><td>' + layer.getRadius() + '</td></tr>');
+            $('#coordinateTable').append('<tr><td>' + 'Center ' + '</td><td>' + center + '</td></tr>');
+
+        }
+
+        if (e.layer instanceof L.Polyline && !(e.layer instanceof L.Rectangle)) {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polyline');
+
+            var latlngs = layer.getLatLngs();
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
+            }
+        }
+
+        if (e.layer instanceof L.Polygon && !(e.layer instanceof L.Rectangle)) {
+
+            $("#coordinateTable").empty();
+            $('#shape').text('Polygon');
+            var latlngs = layer.getLatLngs();
+            for (var i = 0; i < latlngs.length; i++) {
+                $('#coordinateTable').append('<tr><td>' + 'Coordinate ' + ( i + 1) + '</td><td>' + latlngs[i] + '</td></tr>');
+            }
+        }
+
+        featuresGroup.addLayer(e.layer);
+    });
+
+    leaf_map.on('editable:drawing:start', function (e) {
+
+        console.log('Drawing created');
+        clearPolly();
+    });
+
+    leaf_map.on('editable:drawing:end', function (e) {
+
+        console.log('Drawing created');
+    });
+
+    leaf_map.on('editable:vertex:dragend', function (e) {
+
+        console.log('Drawing drag end');
+        drawnPollyItems.push(e.layer);
+    })
+
+}
+
+function clearPolly() {
+
+    for (var i=0; i<drawnPollyItems.length; i++) {
+        leaf_map.removeLayer(drawnPollyItems[i]);
+    }
+}
+
+
+var featuresGroup = new L.LayerGroup();
+
 function addToolTipDrawControl() {
 
     L.EditControl = L.Control.extend({
@@ -87,6 +179,7 @@ function addToolTipDrawControl() {
             callback: null,
             kind: '',
             html: ''
+            //featuresLayer: featuresGroup
         },
 
         onAdd: function (map) {
